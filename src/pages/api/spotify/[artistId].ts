@@ -17,6 +17,55 @@ async function getRedisClient() {
   return client;
 }
 
+// Función para limpiar el nombre de la canción
+function cleanTrackName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s*[\(\[].*?[\)\]]\s*/g, '') // Elimina todo entre paréntesis o corchetes
+    .replace(/\s*-\s*(live|acoustic|remix|remaster|instrumental|demo|radio edit|extended|feat\.?).*$/i, '') // Elimina sufijos comunes
+    .trim();
+}
+
+// Función para detectar si es una versión alternativa
+function isAlternateVersion(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  const alternateKeywords = [
+    'live',
+    'acoustic',
+    'remix',
+    'remaster',
+    'instrumental',
+    'demo',
+    'radio edit',
+    'extended',
+    'skit',
+    'rehearsal',
+    'cover',
+    'karaoke',
+    'unplugged',
+    'concert',
+    'tour'
+  ];
+  
+  return alternateKeywords.some(keyword => 
+    lowerName.includes(keyword) || 
+    lowerName.includes(`(${keyword})`) ||
+    lowerName.includes(`[${keyword}]`)
+  );
+}
+
+// Función para obtener la versión "principal" entre duplicados
+function getPreferredTrack(tracks: any[]): any {
+  // Prioridad: versión sin palabras clave > versión más corta > primera encontrada
+  const nonAlternate = tracks.find(t => !isAlternateVersion(t.name));
+  if (nonAlternate) return nonAlternate;
+  
+  // Si todas son alternativas, toma la más corta (probablemente la original)
+  return tracks.reduce((shortest, current) => 
+    current.name.length < shortest.name.length ? current : shortest
+  );
+}
+
 export const GET: APIRoute = async ({ params }) => {
   const artistId = params.artistId;
   
@@ -115,14 +164,30 @@ export const GET: APIRoute = async ({ params }) => {
         name: track.name,
         image: albumsData.items[idx].images[0]?.url || '',
         albumName: albumsData.items[idx].name,
-        previewUrl: track.preview_url
+        previewUrl: track.preview_url,
+        cleanName: cleanTrackName(track.name) // Añadir nombre limpio para comparar
       }))
     );
 
-    // Remover duplicados por nombre
-    const uniqueTracks = Array.from(
-      new Map(allTracks.map(track => [track.name.toLowerCase(), track])).values()
-    );
+    // Agrupar por nombre limpio y elegir la mejor versión
+    const trackGroups = new Map<string, any[]>();
+    
+    allTracks.forEach(track => {
+      const clean = track.cleanName;
+      if (!trackGroups.has(clean)) {
+        trackGroups.set(clean, []);
+      }
+      trackGroups.get(clean)!.push(track);
+    });
+
+    // Obtener la versión preferida de cada grupo
+    const uniqueTracks = Array.from(trackGroups.values())
+      .map(group => getPreferredTrack(group))
+      .map(track => {
+        // Eliminar la propiedad cleanName antes de enviar
+        const { cleanName, ...trackData } = track;
+        return trackData;
+      });
 
     const result = {
       artist: artistId,
