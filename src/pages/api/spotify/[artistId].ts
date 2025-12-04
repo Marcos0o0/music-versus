@@ -88,7 +88,7 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   const spotifyArtistId = ARTIST_MAP[artistId];
-  const cacheKey = `tracks:${artistId}:v2`; // Cambiado a v2 para limpiar cache
+  const cacheKey = `tracks:${artistId}:v2`;
 
   let redis;
   
