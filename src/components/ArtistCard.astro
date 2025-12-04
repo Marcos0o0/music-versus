@@ -1,0 +1,40 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+  spotifyId: string;
+}
+
+const { id, name, image, description } = Astro.props;
+---
+
+<a 
+  href={`/game/${id}`}
+  class="group block bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20"
+>
+  <div class="aspect-square overflow-hidden">
+    <img 
+      src={image} 
+      alt={name}
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+    />
+  </div>
+  
+  <div class="p-6">
+    <h3 class="text-2xl font-bold mb-2 group-hover:text-purple-400 transition-colors">
+      {name}
+    </h3>
+    <p class="text-gray-400 text-sm line-clamp-2">
+      {description}
+    </p>
+    
+    <div class="mt-4 flex items-center text-purple-400 font-medium">
+      <span>Jugar ahora</span>
+      <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+      </svg>
+    </div>
+  </div>
+</a>

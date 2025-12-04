@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GameVersus from '../../components/GameVersus';
+
+const { artistId } = Astro.params;
+
+const artistNames: Record<string, string> = {
+  'bts': 'BTS'
+};
+
+const artistName = artistNames[artistId || ''] || 'Artista';
+---
+
+<Layout title={`${artistName} - Music Versus`}>
+  <main class="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header con botón de volver -->
+      <div class="mb-8">
+        <a 
+          href="/"
+          class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Volver
+        </a>
+      </div>
+
+      <!-- React Island - Aquí es donde React toma control -->
+      <GameVersus client:load artistId={artistId || ''} artistName={artistName} />
+    </div>
+  </main>
+</Layout>

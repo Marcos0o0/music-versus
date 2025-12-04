@@ -1,16 +1,47 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import ArtistCard from '../components/ArtistCard.astro';
 
+// Por ahora hardcodeamos BTS, luego esto vendrá de una API o DB
+const artists = [
+  {
+    id: 'bts',
+    name: 'BTS',
+    image: 'https://i.scdn.co/image/ab6761610000e5eb82e444dd8989a20b5e8bcb9a',
+    description: 'Grupo de K-pop surcoreano formado en 2010 por Big Hit Entertainment',
+    spotifyId: '3Nrfpe0tUJi4K4DXYWgMUX'
+  }
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Music Versus - Elige tu canción favorita">
+  <main class="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
+    <!-- Header -->
+    <header class="container mx-auto px-4 py-8">
+      <div class="text-center">
+        <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          Music Versus
+        </h1>
+        <p class="text-xl text-gray-300">
+          Descubre tu canción favorita a través de batallas épicas
+        </p>
+      </div>
+    </header>
+
+    <!-- Artists Grid -->
+    <section class="container mx-auto px-4 py-12">
+      <h2 class="text-3xl font-bold mb-8 text-center">Elige un Artista</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {artists.map((artist) => (
+          <ArtistCard {...artist} />
+        ))}
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-4 py-8 text-center text-gray-400">
+      <p>Powered by Spotify API</p>
+    </footer>
+  </main>
+</Layout>
