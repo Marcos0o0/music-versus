@@ -2,12 +2,44 @@
 import Layout from '../layouts/Layout.astro';
 import ArtistCard from '../components/ArtistCard.astro';
 
-// Por ahora hardcodeamos BTS, luego esto vendrá de una API o DB
+// Obtener la imagen del artista desde Spotify
+const getArtistImage = async (spotifyId: string) => {
+  try {
+    const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
+    const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
+    
+    const credentials = btoa(`${clientId}:${clientSecret}`);
+    
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`
+      },
+      body: 'grant_type=client_credentials'
+    });
+    
+    const { access_token } = await tokenResponse.json();
+    
+    const artistResponse = await fetch(`https://api.spotify.com/v1/artists/${spotifyId}`, {
+      headers: { 'Authorization': `Bearer ${access_token}` }
+    });
+    
+    const artistData = await artistResponse.json();
+    return artistData.images[0]?.url || 'https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS';
+  } catch (error) {
+    console.error('Error fetching artist image:', error);
+    return 'https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS';
+  }
+};
+
+const btsImage = await getArtistImage('3Nrfpe0tUJi4K4DXYWgMUX');
+
 const artists = [
   {
     id: 'bts',
     name: 'BTS',
-    image: 'https://i.scdn.co/image/ab6761610000e5eb82e444dd8989a20b5e8bcb9a',
+    image: btsImage,
     description: 'Grupo de K-pop surcoreano formado en 2010 por Big Hit Entertainment',
     spotifyId: '3Nrfpe0tUJi4K4DXYWgMUX'
   }
@@ -16,7 +48,6 @@ const artists = [
 
 <Layout title="Music Versus - Elige tu canción favorita">
   <main class="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
-    <!-- Header -->
     <header class="container mx-auto px-4 py-8">
       <div class="text-center">
         <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -28,7 +59,6 @@ const artists = [
       </div>
     </header>
 
-    <!-- Artists Grid -->
     <section class="container mx-auto px-4 py-12">
       <h2 class="text-3xl font-bold mb-8 text-center">Elige un Artista</h2>
       
@@ -39,7 +69,6 @@ const artists = [
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="container mx-auto px-4 py-8 text-center text-gray-400">
       <p>Powered by Spotify API</p>
     </footer>

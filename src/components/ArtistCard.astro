@@ -14,11 +14,13 @@ const { id, name, image, description } = Astro.props;
   href={`/game/${id}`}
   class="group block bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20"
 >
-  <div class="aspect-square overflow-hidden">
+  <div class="aspect-square overflow-hidden bg-gray-900">
     <img 
       src={image} 
       alt={name}
+      loading="lazy"
       class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+      onerror="this.src='https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS'"
     />
   </div>
   
