@@ -1,12 +1,21 @@
 import type { APIRoute } from 'astro';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
 
-export const prerender = false; // Esto lo hace serverless
+export const prerender = false;
 
-// Mapeo de IDs legibles a IDs de Spotify
 const ARTIST_MAP: Record<string, string> = {
   'bts': '3Nrfpe0tUJi4K4DXYWgMUX'
 };
+
+// Helper para conectar a Redis
+async function getRedisClient() {
+  const client = createClient({
+    url: import.meta.env.REDIS_URL
+  });
+  
+  await client.connect();
+  return client;
+}
 
 export const GET: APIRoute = async ({ params }) => {
   const artistId = params.artistId;
@@ -21,28 +30,58 @@ export const GET: APIRoute = async ({ params }) => {
   const spotifyArtistId = ARTIST_MAP[artistId];
   const cacheKey = `tracks:${artistId}`;
 
+  let redis;
+  
   try {
-    // Intentar obtener del cache
-    const cached = await kv.get(cacheKey);
-    if (cached) {
-      console.log('Cache hit para:', artistId);
-      return new Response(JSON.stringify(cached), {
-        status: 200,
+    // Verificar variables de entorno
+    const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
+    const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error('Missing Spotify credentials');
+      return new Response(JSON.stringify({ 
+        error: 'Configuración de Spotify incompleta' 
+      }), {
+        status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Intentar conectar a Redis y obtener cache
+    try {
+      redis = await getRedisClient();
+      const cached = await redis.get(cacheKey);
+      
+      if (cached) {
+        console.log('Cache hit para:', artistId);
+        await redis.quit();
+        return new Response(cached, {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } catch (redisError) {
+      console.warn('Redis error, continuando sin cache:', redisError);
+      if (redis) await redis.quit().catch(() => {});
+      redis = null;
+    }
+
+    // Crear credenciales base64
+    const credentials = btoa(`${clientId}:${clientSecret}`);
 
     // Obtener token de Spotify
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(
-          `${import.meta.env.SPOTIFY_CLIENT_ID}:${import.meta.env.SPOTIFY_CLIENT_SECRET}`
-        ).toString('base64')
+        'Authorization': `Basic ${credentials}`
       },
       body: 'grant_type=client_credentials'
     });
+
+    if (!tokenResponse.ok) {
+      throw new Error(`Spotify token error: ${tokenResponse.status}`);
+    }
 
     const { access_token } = await tokenResponse.json();
 
@@ -53,6 +92,10 @@ export const GET: APIRoute = async ({ params }) => {
         headers: { 'Authorization': `Bearer ${access_token}` }
       }
     );
+
+    if (!albumsResponse.ok) {
+      throw new Error(`Spotify albums error: ${albumsResponse.status}`);
+    }
 
     const albumsData = await albumsResponse.json();
     
@@ -87,8 +130,17 @@ export const GET: APIRoute = async ({ params }) => {
       total: uniqueTracks.length
     };
 
-    // Guardar en cache por 24 horas
-    await kv.set(cacheKey, result, { ex: 86400 });
+    // Intentar guardar en cache
+    try {
+      if (!redis) {
+        redis = await getRedisClient();
+      }
+      await redis.setEx(cacheKey, 86400, JSON.stringify(result)); // 24 horas
+      await redis.quit();
+    } catch (redisError) {
+      console.warn('Redis set error:', redisError);
+      if (redis) await redis.quit().catch(() => {});
+    }
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -96,8 +148,12 @@ export const GET: APIRoute = async ({ params }) => {
     });
 
   } catch (error) {
+    if (redis) await redis.quit().catch(() => {});
     console.error('Error fetching Spotify data:', error);
-    return new Response(JSON.stringify({ error: 'Error al obtener datos de Spotify' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Error al obtener datos de Spotify',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
