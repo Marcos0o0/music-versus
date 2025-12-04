@@ -19,5 +19,8 @@
     "react-dom": "^19.2.1",
     "spotify-web-api-node": "^5.0.2",
     "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "@astrojs/vercel": "^9.0.2"
   }
 }
