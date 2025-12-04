@@ -17,41 +17,52 @@ async function getRedisClient() {
   return client;
 }
 
+// Función para detectar si un álbum es live, remix, o no deseado
+function isUnwantedAlbum(albumName: string): boolean {
+  const lowerName = albumName.toLowerCase();
+  const unwantedKeywords = [
+    'live',
+    'concert',
+    'tour',
+    'remix',
+    'instrumental',
+    'karaoke',
+    'rehearsal',
+    'demo',
+    'acoustic',
+    'unplugged',
+    'on stage',
+    'in concert',
+    'special performance'
+  ];
+  
+  return unwantedKeywords.some(keyword => lowerName.includes(keyword));
+}
+
 // Función para limpiar el nombre de la canción
 function cleanTrackName(name: string): string {
   return name
     .toLowerCase()
     .replace(/\s*[\(\[].*?[\)\]]\s*/g, '') // Elimina todo entre paréntesis o corchetes
-    .replace(/\s*-\s*(live|acoustic|remix|remaster|instrumental|demo|radio edit|extended|feat\.?).*$/i, '') // Elimina sufijos comunes
+    .replace(/\s*-\s*(feat\.?|ft\.?).*$/i, '') // Mantiene feat pero limpia para comparar
     .trim();
 }
 
-// Función para detectar si es una versión alternativa
+// Función para detectar si es una versión alternativa individual
 function isAlternateVersion(name: string): boolean {
   const lowerName = name.toLowerCase();
   const alternateKeywords = [
-    'live',
-    'acoustic',
-    'remix',
-    'remaster',
-    'instrumental',
-    'demo',
-    'radio edit',
-    'extended',
     'skit',
-    'rehearsal',
-    'cover',
-    'karaoke',
-    'unplugged',
-    'concert',
-    'tour'
+    'intro',
+    'outro',
+    'interlude',
+    '(japanese ver',
+    '(english ver',
+    '(chinese ver',
+    '(korean ver'
   ];
   
-  return alternateKeywords.some(keyword => 
-    lowerName.includes(keyword) || 
-    lowerName.includes(`(${keyword})`) ||
-    lowerName.includes(`[${keyword}]`)
-  );
+  return alternateKeywords.some(keyword => lowerName.includes(keyword));
 }
 
 // Función para obtener la versión "principal" entre duplicados
@@ -77,7 +88,7 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   const spotifyArtistId = ARTIST_MAP[artistId];
-  const cacheKey = `tracks:${artistId}`;
+  const cacheKey = `tracks:${artistId}:v2`; // Cambiado a v2 para limpiar cache
 
   let redis;
   
@@ -148,8 +159,15 @@ export const GET: APIRoute = async ({ params }) => {
 
     const albumsData = await albumsResponse.json();
     
-    // Obtener tracks de todos los álbumes
-    const trackPromises = albumsData.items.map((album: any) =>
+    // FILTRAR ÁLBUMES NO DESEADOS AQUÍ
+    const filteredAlbums = albumsData.items.filter((album: any) => 
+      !isUnwantedAlbum(album.name)
+    );
+
+    console.log(`Álbumes originales: ${albumsData.items.length}, Después de filtrar: ${filteredAlbums.length}`);
+    
+    // Obtener tracks solo de álbumes filtrados
+    const trackPromises = filteredAlbums.map((album: any) =>
       fetch(`https://api.spotify.com/v1/albums/${album.id}/tracks`, {
         headers: { 'Authorization': `Bearer ${access_token}` }
       }).then(res => res.json())
@@ -159,14 +177,16 @@ export const GET: APIRoute = async ({ params }) => {
     
     // Combinar y limpiar datos
     const allTracks = tracksData.flatMap((data, idx) => 
-      data.items.map((track: any) => ({
-        id: track.id,
-        name: track.name,
-        image: albumsData.items[idx].images[0]?.url || '',
-        albumName: albumsData.items[idx].name,
-        previewUrl: track.preview_url,
-        cleanName: cleanTrackName(track.name) // Añadir nombre limpio para comparar
-      }))
+      data.items
+        .filter((track: any) => !isAlternateVersion(track.name)) // Filtrar skits, intros, etc.
+        .map((track: any) => ({
+          id: track.id,
+          name: track.name,
+          image: filteredAlbums[idx].images[0]?.url || '',
+          albumName: filteredAlbums[idx].name,
+          previewUrl: track.preview_url,
+          cleanName: cleanTrackName(track.name)
+        }))
     );
 
     // Agrupar por nombre limpio y elegir la mejor versión
@@ -188,6 +208,8 @@ export const GET: APIRoute = async ({ params }) => {
         const { cleanName, ...trackData } = track;
         return trackData;
       });
+
+    console.log(`Tracks únicos finales: ${uniqueTracks.length}`);
 
     const result = {
       artist: artistId,
