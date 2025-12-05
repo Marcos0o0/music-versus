@@ -7,74 +7,66 @@ const ARTIST_MAP: Record<string, string> = {
   'bts': '3Nrfpe0tUJi4K4DXYWgMUX'
 };
 
-// Helper para conectar a Redis
 async function getRedisClient() {
   const client = createClient({
     url: import.meta.env.REDIS_URL
   });
-  
   await client.connect();
   return client;
 }
 
-// Función para detectar si un álbum es live, remix, o no deseado
 function isUnwantedAlbum(albumName: string): boolean {
   const lowerName = albumName.toLowerCase();
   const unwantedKeywords = [
-    'live',
-    'concert',
-    'tour',
-    'remix',
-    'instrumental',
-    'karaoke',
-    'rehearsal',
-    'demo',
-    'acoustic',
-    'unplugged',
-    'on stage',
-    'in concert',
-    'special performance'
+    'live', 'concert', 'tour', 'remix', 'instrumental', 'karaoke',
+    'rehearsal', 'demo', 'acoustic', 'unplugged', 'on stage', 'in concert'
   ];
-  
   return unwantedKeywords.some(keyword => lowerName.includes(keyword));
 }
 
-// Función para limpiar el nombre de la canción
 function cleanTrackName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s*[\(\[].*?[\)\]]\s*/g, '') // Elimina todo entre paréntesis o corchetes
-    .replace(/\s*-\s*(feat\.?|ft\.?).*$/i, '') // Mantiene feat pero limpia para comparar
+    .replace(/\s*[\(\[].*?[\)\]]\s*/g, '')
+    .replace(/\s*-\s*(feat\.?|ft\.?).*$/i, '')
     .trim();
 }
 
-// Función para detectar si es una versión alternativa individual
 function isAlternateVersion(name: string): boolean {
   const lowerName = name.toLowerCase();
   const alternateKeywords = [
-    'skit',
-    'intro',
-    'outro',
-    'interlude',
-    '(japanese ver',
-    '(english ver',
-    '(chinese ver',
-    '(korean ver'
+    'skit', 'intro', 'outro', 'interlude',
+    '(japanese ver', '(english ver', '(chinese ver', '(korean ver'
   ];
-  
   return alternateKeywords.some(keyword => lowerName.includes(keyword));
 }
 
-// Función para obtener la versión "principal" entre duplicados
 function getPreferredTrack(tracks: any[]): any {
-  // Prioridad: versión sin palabras clave > versión más corta > primera encontrada
   const nonAlternate = tracks.find(t => !isAlternateVersion(t.name));
   if (nonAlternate) return nonAlternate;
-  
-  // Si todas son alternativas, toma la más corta (probablemente la original)
   return tracks.reduce((shortest, current) => 
     current.name.length < shortest.name.length ? current : shortest
   );
+}
+
+// Función para buscar preview en Deezer
+async function searchDeezerPreview(trackName: string, artistName: string): Promise<string | null> {
+  try {
+    const query = encodeURIComponent(`${artistName} ${trackName}`);
+    const response = await fetch(`https://api.deezer.com/search?q=${query}&limit=1`);
+    
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    
+    if (data.data && data.data.length > 0 && data.data[0].preview) {
+      return data.data[0].preview;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error searching Deezer:', error);
+    return null;
+  }
 }
 
 export const GET: APIRoute = async ({ params }) => {
@@ -88,12 +80,11 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   const spotifyArtistId = ARTIST_MAP[artistId];
-  const cacheKey = `tracks:${artistId}:v2`;
+  const cacheKey = `tracks:${artistId}:v3-deezer`;
 
   let redis;
   
   try {
-    // Verificar variables de entorno
     const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
     const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
 
@@ -107,7 +98,7 @@ export const GET: APIRoute = async ({ params }) => {
       });
     }
 
-    // Intentar conectar a Redis y obtener cache
+    // Intentar obtener de cache
     try {
       redis = await getRedisClient();
       const cached = await redis.get(cacheKey);
@@ -126,7 +117,6 @@ export const GET: APIRoute = async ({ params }) => {
       redis = null;
     }
 
-    // Crear credenciales base64
     const credentials = btoa(`${clientId}:${clientSecret}`);
 
     // Obtener token de Spotify
@@ -145,12 +135,10 @@ export const GET: APIRoute = async ({ params }) => {
 
     const { access_token } = await tokenResponse.json();
 
-    // Obtener álbumes del artista
+    // Obtener álbumes
     const albumsResponse = await fetch(
       `https://api.spotify.com/v1/artists/${spotifyArtistId}/albums?include_groups=album,single&market=US&limit=50`,
-      {
-        headers: { 'Authorization': `Bearer ${access_token}` }
-      }
+      { headers: { 'Authorization': `Bearer ${access_token}` } }
     );
 
     if (!albumsResponse.ok) {
@@ -158,15 +146,13 @@ export const GET: APIRoute = async ({ params }) => {
     }
 
     const albumsData = await albumsResponse.json();
-    
-    // FILTRAR ÁLBUMES NO DESEADOS AQUÍ
     const filteredAlbums = albumsData.items.filter((album: any) => 
       !isUnwantedAlbum(album.name)
     );
 
-    console.log(`Álbumes originales: ${albumsData.items.length}, Después de filtrar: ${filteredAlbums.length}`);
+    console.log(`Álbumes: ${albumsData.items.length} → ${filteredAlbums.length} (después de filtrar)`);
     
-    // Obtener tracks solo de álbumes filtrados
+    // Obtener tracks
     const trackPromises = filteredAlbums.map((album: any) =>
       fetch(`https://api.spotify.com/v1/albums/${album.id}/tracks`, {
         headers: { 'Authorization': `Bearer ${access_token}` }
@@ -175,10 +161,9 @@ export const GET: APIRoute = async ({ params }) => {
 
     const tracksData = await Promise.all(trackPromises);
     
-    // Combinar y limpiar datos
     const allTracks = tracksData.flatMap((data, idx) => 
       data.items
-        .filter((track: any) => !isAlternateVersion(track.name)) // Filtrar skits, intros, etc.
+        .filter((track: any) => !isAlternateVersion(track.name))
         .map((track: any) => ({
           id: track.id,
           name: track.name,
@@ -189,7 +174,7 @@ export const GET: APIRoute = async ({ params }) => {
         }))
     );
 
-    // Agrupar por nombre limpio y elegir la mejor versión
+    // Agrupar por nombre limpio
     const trackGroups = new Map<string, any[]>();
     
     allTracks.forEach(track => {
@@ -200,24 +185,53 @@ export const GET: APIRoute = async ({ params }) => {
       trackGroups.get(clean)!.push(track);
     });
 
-    // Obtener la versión preferida de cada grupo
     const uniqueTracks = Array.from(trackGroups.values())
-      .map(group => getPreferredTrack(group))
-      .map(track => {
-        // Eliminar la propiedad cleanName antes de enviar
-        const { cleanName, ...trackData } = track;
-        return trackData;
-      });
+      .map(group => getPreferredTrack(group));
 
-    console.log(`Tracks únicos finales: ${uniqueTracks.length}`);
+    console.log(`Tracks únicos: ${uniqueTracks.length}`);
+    console.log(`Con preview de Spotify: ${uniqueTracks.filter(t => t.previewUrl).length}`);
+    
+    console.log('Buscando previews en Deezer...');
+    
+    const tracksWithPreviews = await Promise.all(
+      uniqueTracks.map(async (track) => {
+        if (!track.previewUrl) {
+          const deezerPreview = await searchDeezerPreview(track.name, 'BTS');
+          if (deezerPreview) {
+            console.log(`Deezer preview encontrado para: ${track.name}`);
+          }
+          return {
+            ...track,
+            previewUrl: deezerPreview || track.previewUrl,
+            previewSource: deezerPreview ? 'deezer' : null
+          };
+        }
+        return {
+          ...track,
+          previewSource: 'spotify'
+        };
+      })
+    );
+
+    const previewCount = tracksWithPreviews.filter(t => t.previewUrl).length;
+    console.log(`Total con preview: ${previewCount}/${tracksWithPreviews.length}`);
 
     const result = {
       artist: artistId,
-      tracks: uniqueTracks,
-      total: uniqueTracks.length
+      tracks: tracksWithPreviews.map(track => {
+        const { cleanName, ...trackData } = track;
+        return trackData;
+      }),
+      total: tracksWithPreviews.length,
+      previewStats: {
+        total: tracksWithPreviews.length,
+        withPreview: previewCount,
+        spotify: tracksWithPreviews.filter(t => t.previewSource === 'spotify').length,
+        deezer: tracksWithPreviews.filter(t => t.previewSource === 'deezer').length
+      }
     };
 
-    // Intentar guardar en cache
+    // Guardar en cache
     try {
       if (!redis) {
         redis = await getRedisClient();
@@ -236,9 +250,9 @@ export const GET: APIRoute = async ({ params }) => {
 
   } catch (error) {
     if (redis) await redis.quit().catch(() => {});
-    console.error('Error fetching Spotify data:', error);
+    console.error('Error fetching data:', error);
     return new Response(JSON.stringify({ 
-      error: 'Error al obtener datos de Spotify',
+      error: 'Error al obtener datos',
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,

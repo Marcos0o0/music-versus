@@ -629,28 +629,39 @@ export default function GameVersus({ artistId, artistName }: Props) {
                   #{index + 1}
                 </div>
 
-                {/* Icono de audio disponible y botón play */}
-                {hasPreview && !animating && (
-                  <button
-                    onClick={(e) => toggleAudio(e, track)}
-                    className="absolute bottom-4 left-4 bg-purple-600 hover:bg-purple-700 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all transform hover:scale-110 z-30 shadow-2xl border-2 border-purple-400"
-                  >
-                    {isPlaying ? (
-                      <>
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        Pausar
-                      </>
+                {/* BOTÓN DE AUDIO - SIEMPRE VISIBLE */}
+                {!animating && (
+                  <div className="absolute bottom-4 left-4 z-40">
+                    {hasPreview ? (
+                      <button
+                        onClick={(e) => toggleAudio(e, track)}
+                        className="bg-purple-600 hover:bg-purple-700 backdrop-blur-sm px-4 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all transform hover:scale-110 shadow-2xl border-2 border-purple-400"
+                      >
+                        {isPlaying ? (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <span>Pausar</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                            <span>Preview</span>
+                          </>
+                        )}
+                      </button>
                     ) : (
-                      <>
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                      <div className="bg-gray-700/90 backdrop-blur-sm px-4 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 shadow-2xl border-2 border-gray-600 opacity-60">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
                         </svg>
-                        Preview
-                      </>
+                        <span>Sin preview</span>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 )}
               </div>
               
