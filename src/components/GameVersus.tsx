@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Music } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -28,6 +27,7 @@ export default function GameVersus({ artistId, artistName }: Props) {
   const [rejectedTrack, setRejectedTrack] = useState<string | null>(null);
   const [hoveredTrack, setHoveredTrack] = useState<string | null>(null);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const winnerCardRef = useRef<HTMLDivElement>(null);
@@ -75,12 +75,40 @@ export default function GameVersus({ artistId, artistName }: Props) {
     // Detener audio anterior si existe
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
     
     // Crear y reproducir nuevo audio
-    audioRef.current = new Audio(track.previewUrl);
-    audioRef.current.volume = 0.3;
-    audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+    try {
+      audioRef.current = new Audio(track.previewUrl);
+      audioRef.current.volume = 0.3;
+      
+      // Listener cuando empiece a reproducir
+      audioRef.current.addEventListener('playing', () => {
+        setPlayingAudio(track.id);
+      });
+      
+      // Listener cuando termine o haya error
+      audioRef.current.addEventListener('ended', () => {
+        setPlayingAudio(null);
+      });
+      
+      audioRef.current.addEventListener('error', () => {
+        setPlayingAudio(null);
+        console.log('Error al cargar audio');
+      });
+      
+      // Intentar reproducir
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.log('Audio autoplay blocked:', err.message);
+        });
+      }
+    } catch (err) {
+      console.log('Audio creation failed:', err);
+    }
   };
 
   const handleMouseLeave = () => {
@@ -88,7 +116,52 @@ export default function GameVersus({ artistId, artistName }: Props) {
     
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
       audioRef.current = null;
+    }
+    
+    setPlayingAudio(null);
+  };
+
+  // Toggle manual de audio
+  const toggleAudio = (e: React.MouseEvent, track: Track) => {
+    e.stopPropagation(); // No activar el voto
+    
+    if (!track.previewUrl) return;
+    
+    // Si ya está reproduciendo este track, pausar
+    if (playingAudio === track.id && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlayingAudio(null);
+      return;
+    }
+    
+    // Detener audio anterior
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
+    // Reproducir nuevo audio
+    try {
+      audioRef.current = new Audio(track.previewUrl);
+      audioRef.current.volume = 0.3;
+      
+      audioRef.current.addEventListener('playing', () => {
+        setPlayingAudio(track.id);
+      });
+      
+      audioRef.current.addEventListener('ended', () => {
+        setPlayingAudio(null);
+      });
+      
+      audioRef.current.play().catch(err => {
+        console.error('Error playing audio:', err);
+        setPlayingAudio(null);
+      });
+    } catch (err) {
+      console.error('Error creating audio:', err);
     }
   };
 
@@ -463,7 +536,9 @@ export default function GameVersus({ artistId, artistName }: Props) {
           ¿Cuál prefieres?
         </h2>
         <p className="text-gray-400 text-lg">
-          {currentPair.some(t => t.previewUrl) ? '🎧 Pasa el cursor para escuchar un preview' : 'Elige tu favorita para continuar'}
+          {currentPair.some(t => t.previewUrl) 
+            ? '🎧 Click en "Preview" para escuchar • Pasa el cursor en desktop' 
+            : 'Elige tu favorita para continuar'}
         </p>
       </div>
 
@@ -480,6 +555,8 @@ export default function GameVersus({ artistId, artistName }: Props) {
           const isSelected = selectedTrack === track.id;
           const isRejected = rejectedTrack === track.id;
           const isHovered = hoveredTrack === track.id;
+          const isPlaying = playingAudio === track.id;
+          const hasPreview = !!track.previewUrl;
           
           return (
             <button
@@ -501,8 +578,8 @@ export default function GameVersus({ artistId, artistName }: Props) {
               }}
             >
               {/* Indicador de audio */}
-              {track.previewUrl && isHovered && !animating && (
-                <div className="absolute top-4 right-4 z-30 bg-purple-600 text-white px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
+              {hasPreview && isPlaying && !animating && (
+                <div className="absolute top-4 right-4 z-30 bg-green-600 text-white px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
                   <div className="flex gap-0.5">
                     <div className="w-1 h-3 bg-white rounded-full animate-[bounce_0.6s_ease-in-out_infinite]"></div>
                     <div className="w-1 h-3 bg-white rounded-full animate-[bounce_0.6s_ease-in-out_0.1s_infinite]"></div>
@@ -552,11 +629,28 @@ export default function GameVersus({ artistId, artistName }: Props) {
                   #{index + 1}
                 </div>
 
-                {/* Icono de audio disponible */}
-                {track.previewUrl && !animating && (
-                  <div className="absolute bottom-4 left-4 bg-purple-600/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                    <Music /> Audio disponible
-                  </div>
+                {/* Icono de audio disponible y botón play */}
+                {hasPreview && !animating && (
+                  <button
+                    onClick={(e) => toggleAudio(e, track)}
+                    className="absolute bottom-4 left-4 bg-purple-600 hover:bg-purple-700 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all z-20 shadow-lg"
+                  >
+                    {isPlaying ? (
+                      <>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Pausar
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                        Preview
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
               
