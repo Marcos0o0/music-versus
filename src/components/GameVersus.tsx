@@ -622,10 +622,10 @@ export default function GameVersus({ artistId, artistName }: Props) {
                   `}
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60 pointer-events-none"></div>
                 
                 {/* Número de batalla */}
-                <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold">
+                <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold z-10">
                   #{index + 1}
                 </div>
 
@@ -633,7 +633,7 @@ export default function GameVersus({ artistId, artistName }: Props) {
                 {hasPreview && !animating && (
                   <button
                     onClick={(e) => toggleAudio(e, track)}
-                    className="absolute bottom-4 left-4 bg-purple-600 hover:bg-purple-700 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all z-20 shadow-lg"
+                    className="absolute bottom-4 left-4 bg-purple-600 hover:bg-purple-700 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all transform hover:scale-110 z-30 shadow-2xl border-2 border-purple-400"
                   >
                     {isPlaying ? (
                       <>
