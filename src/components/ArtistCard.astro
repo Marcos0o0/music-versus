@@ -10,8 +10,7 @@ interface Props {
 const { id, name, image, description } = Astro.props;
 ---
 
-<a 
-  href={`/game/${id}`}
+<div 
   class="group block rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-102 relative"
   style="background-color: #ffffff; border-color: #A89885; box-shadow: 0 4px 20px rgba(68, 68, 43, 0.08);"
 >
@@ -42,25 +41,49 @@ const { id, name, image, description } = Astro.props;
       {description}
     </p>
     
-    <div class="flex items-center justify-between">
-      <div class="flex items-center font-semibold transition-colors" style="color: #926149;">
-        <span>Comenzar</span>
-        <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+    <!-- Botones de acción -->
+    <div class="flex gap-2">
+      <!-- Botón principal: Jugar -->
+      <a 
+        href={`/game/${id}`}
+        class="no-underline flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold transition-all hover:shadow-lg border-2"
+        style="background-color: #926149; color: #F5E9E4; border-color: #926149;"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-      </div>
-      <span class="text-xl">🎵</span>
+        <span>Jugar</span>
+      </a>
+
+      <!-- Botón secundario: Ranking -->
+      <a 
+        href={`/leaderboard/${id}`}
+        class="no-underline flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold transition-all hover:shadow-lg border-2"
+        style="background-color: transparent; color: #926149; border-color: #926149;"
+        title="Ver ranking de canciones"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        <span class="hidden sm:inline">Top</span>
+        <span>🏆</span>
+      </a>
     </div>
   </div>
-</a>
+</div>
 
 <style>
-  a:hover {
-    border-color: #926149 !important;
-    box-shadow: 0 10px 40px rgba(146, 97, 73, 0.15) !important;
+  div:hover h3 {
+    color: #926149 !important;
   }
   
-  a:hover h3 {
-    color: #926149 !important;
+  a[href^="/game"]:hover {
+    background-color: #6b6b45 !important;
+  }
+  
+  a[href^="/leaderboard"]:hover {
+    background-color: #926149 !important;
+    color: #F5E9E4 !important;
   }
 </style>

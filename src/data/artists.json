@@ -1,0 +1,103 @@
+{
+  "artists": [
+    {
+      "id": "bts",
+      "name": "BTS",
+      "spotifyId": "3Nrfpe0tUJi4K4DXYWgMUX",
+      "description": "Grupo de K-pop surcoreano formado en 2010 por Big Hit (HYBE)",
+      "genre": "K-Pop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb82e444dd8989a20b5e8bcb9a"
+    },
+    {
+      "id": "jin",
+      "name": "Jin",
+      "spotifyId": "5vV3bFXnN6D6N3Nj4xRvaV",
+      "description": "Kim Seokjin — miembro de BTS, vocalista y bailarín",
+      "genre": "K-Pop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5ebe5c33c659d281d68e347c0c9"
+    },
+    {
+      "id": "agust-d",
+      "name": "Agust D",
+      "spotifyId": "5RmQ8k4l3HZ8JoPb4mNsML",
+      "description": "Min Yoongi — miembro de BTS, rapero, productor, solista",
+      "genre": "K-Pop / Hip-Hop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb16c6654a494087e5e3de8a45"
+    },
+    {
+      "id": "j-hope",
+      "name": "J-Hope",
+      "spotifyId": "0b1sIQumIAsNbqAoIClSpy",
+      "description": "Jung Hoseok — miembro de BTS, rapero, bailarín, solista",
+      "genre": "K-Pop / Hip-Hop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb7631671e14fad9c049f2e64a"
+    },
+    {
+      "id": "rm",
+      "name": "RM",
+      "spotifyId": "2auC28zjQyVTsiZKNgPRGs",
+      "description": "Kim Namjoon — líder de BTS, rapero, solista",
+      "genre": "K-Pop / Hip-Hop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb8e075c754be58cc33e30905a"
+    },
+    {
+      "id": "jimin",
+      "name": "Jimin",
+      "spotifyId": "1oSPZhvZMIrWW5I41kPkkY",
+      "description": "Park Jimin — miembro de BTS, vocalista, bailarín, solista",
+      "genre": "K-Pop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb16c6654a494087e5e3de8a45"
+    },
+    {
+      "id": "v",
+      "name": "V",
+      "spotifyId": "3JsHnjpbhX4SnySpvpa9DK",
+      "description": "Kim Taehyung — miembro de BTS, vocalista, bailarín, solista",
+      "genre": "K-Pop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb0c6952f39ba680598092b54b"
+    },
+    {
+      "id": "jungkook",
+      "name": "Jungkook",
+      "spotifyId": "6HaGTQPmzraVmaVxvz6EUc",
+      "description": "Jeon Jungkook — miembro de BTS, vocalista principal, bailarín, solista",
+      "genre": "K-Pop / Pop",
+      "country": "KR",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb16c6654a494087e5e3de8a45"
+    },
+    {
+      "id": "twenty-one-pilots",
+      "name": "Twenty One Pilots",
+      "spotifyId": "3YQKmKGau1PzlVlkL1iodx",
+      "description": "Dúo estadounidense de rock alternativo y rap rock",
+      "genre": "Alternative Rock / Rap Rock",
+      "country": "US",
+      "image": "https://i.scdn.co/image/ab6761610000e5ebd45f611c76a1f49f8fe7c7f5"
+    },
+    {
+      "id": "kendrick-lamar",
+      "name": "Kendrick Lamar",
+      "spotifyId": "2YZyLoL8N0Wb9xBt1NhZWg",
+      "description": "Rapero y compositor estadounidense, figura clave del hip-hop moderno",
+      "genre": "Hip-Hop",
+      "country": "US",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022"
+    },
+    {
+      "id": "nirvana",
+      "name": "Nirvana",
+      "spotifyId": "6olE6TJLqED3rqDCT0FyPh",
+      "description": "Banda estadounidense de rock/grunge formada en 1987",
+      "genre": "Grunge / Rock",
+      "country": "US",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb9c2e1ded5b834ba397b1a82c"
+    }
+  ]
+}

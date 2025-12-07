@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ArtistCard from '../components/ArtistCard.astro';
+import artistsData from '../data/artists.json';
 
 const getArtistImage = async (spotifyId: string) => {
   try {
@@ -32,17 +33,13 @@ const getArtistImage = async (spotifyId: string) => {
   }
 };
 
-const btsImage = await getArtistImage('3Nrfpe0tUJi4K4DXYWgMUX');
-
-const artists = [
-  {
-    id: 'bts',
-    name: 'BTS',
-    image: btsImage,
-    description: 'Grupo de K-pop surcoreano formado en 2010 por Big Hit Entertainment',
-    spotifyId: '3Nrfpe0tUJi4K4DXYWgMUX'
-  }
-];
+// Obtener imágenes para todos los artistas
+const artistsWithImages = await Promise.all(
+  artistsData.artists.map(async (artist) => ({
+    ...artist,
+    image: await getArtistImage(artist.spotifyId)
+  }))
+);
 ---
 
 <Layout title="Music Versus - Elige tu canción favorita">
@@ -55,12 +52,12 @@ const artists = [
       🌸
     </div>
     
-    <header class="container mx-auto px-4 py-20 relative">
+    <header class="container mx-auto px-4 py-14 relative">
       <div class="text-center max-w-3xl mx-auto">
         <!-- Título con estilo vintage -->
         <div class="mb-6">
           <div class="inline-block px-6 py-2 rounded-full border-2 mb-4" style="border-color: #926149; color: #926149;">
-            <span class="text-sm font-semibold tracking-wide">✨ ENCUENTRA TU FAVORITA ✨</span>
+            <span class="text-sm font-semibold tracking-wide">ENCUENTRA TU CANCION FAVORITA</span>
           </div>
         </div>
         
@@ -69,16 +66,16 @@ const artists = [
         </h1>
         
         <p class="text-xl mb-4 leading-relaxed" style="color: #926149;">
-          Descubre tu canción favorita a través de dulces batallas musicales
+          Descubre tu canción favorita a través de elecciones
         </p>
         
         <p class="text-sm" style="color: #A89885;">
-          🎵 Elige con el corazón • 🌼 Cada canción es especial • 🎀 Encuentra tu melodía
+          Elige sabiamente • Cada cancion es unica • Disfruta
         </p>
       </div>
     </header>
 
-    <section class="container mx-auto px-4 py-12 relative">
+    <section class="container mx-auto px-4 relative">
       <!-- Decoración: línea divisoria -->
       <div class="flex items-center justify-center mb-12">
         <div class="h-px w-24" style="background-color: #A89885;"></div>
@@ -86,12 +83,15 @@ const artists = [
         <div class="h-px w-24" style="background-color: #A89885;"></div>
       </div>
       
-      <h2 class="text-4xl font-bold mb-12 text-center" style="color: #44442B; font-family: Georgia, serif;">
-        Elige un Artista
+      <h2 class="text-4xl font-bold mb-4 text-center" style="color: #44442B; font-family: Georgia, serif;">
+        Elige un Artista o Banda
       </h2>
+      <p class="text-center text-lg mb-12" style="color: #A89885;">
+        {artistsWithImages.length} artistas disponibles
+      </p>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {artists.map((artist) => (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        {artistsWithImages.map((artist) => (
           <ArtistCard {...artist} />
         ))}
       </div>
@@ -100,9 +100,7 @@ const artists = [
     <!-- Footer suave -->
     <footer class="container mx-auto px-4 py-12 text-center relative">
       <div class="flex items-center justify-center gap-2 mb-4" style="color: #A89885;">
-        <span class="text-xl">🎶</span>
-        <p class="text-sm">Hecho con amor • Spotify & Deezer</p>
-        <span class="text-xl">🎶</span>
+        <span>🪨</span>
       </div>
     </footer>
     

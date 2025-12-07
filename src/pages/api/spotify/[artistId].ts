@@ -1,11 +1,14 @@
 import type { APIRoute } from 'astro';
 import { createClient } from 'redis';
+import artistsData from '../../../data/artists.json';
 
 export const prerender = false;
 
-const ARTIST_MAP: Record<string, string> = {
-  'bts': '3Nrfpe0tUJi4K4DXYWgMUX'
-};
+// Construir el mapa dinámicamente desde el JSON
+const ARTIST_MAP: Record<string, string> = {};
+artistsData.artists.forEach(artist => {
+  ARTIST_MAP[artist.id] = artist.spotifyId;
+});
 
 async function getRedisClient() {
   const client = createClient({
@@ -49,7 +52,6 @@ function getPreferredTrack(tracks: any[]): any {
   );
 }
 
-// Función para buscar preview en Deezer
 async function searchDeezerPreview(trackName: string, artistName: string): Promise<string | null> {
   try {
     const query = encodeURIComponent(`${artistName} ${trackName}`);
@@ -80,6 +82,8 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   const spotifyArtistId = ARTIST_MAP[artistId];
+  const artistInfo = artistsData.artists.find(a => a.id === artistId);
+  const artistName = artistInfo?.name || artistId;
   const cacheKey = `tracks:${artistId}:v3-deezer`;
 
   let redis;
@@ -119,7 +123,6 @@ export const GET: APIRoute = async ({ params }) => {
 
     const credentials = btoa(`${clientId}:${clientSecret}`);
 
-    // Obtener token de Spotify
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -135,7 +138,6 @@ export const GET: APIRoute = async ({ params }) => {
 
     const { access_token } = await tokenResponse.json();
 
-    // Obtener álbumes
     const albumsResponse = await fetch(
       `https://api.spotify.com/v1/artists/${spotifyArtistId}/albums?include_groups=album,single&market=US&limit=50`,
       { headers: { 'Authorization': `Bearer ${access_token}` } }
@@ -150,9 +152,8 @@ export const GET: APIRoute = async ({ params }) => {
       !isUnwantedAlbum(album.name)
     );
 
-    console.log(`Álbumes: ${albumsData.items.length} → ${filteredAlbums.length} (después de filtrar)`);
+    console.log(`[${artistName}] Álbumes: ${albumsData.items.length} → ${filteredAlbums.length}`);
     
-    // Obtener tracks
     const trackPromises = filteredAlbums.map((album: any) =>
       fetch(`https://api.spotify.com/v1/albums/${album.id}/tracks`, {
         headers: { 'Authorization': `Bearer ${access_token}` }
@@ -174,7 +175,6 @@ export const GET: APIRoute = async ({ params }) => {
         }))
     );
 
-    // Agrupar por nombre limpio
     const trackGroups = new Map<string, any[]>();
     
     allTracks.forEach(track => {
@@ -188,17 +188,15 @@ export const GET: APIRoute = async ({ params }) => {
     const uniqueTracks = Array.from(trackGroups.values())
       .map(group => getPreferredTrack(group));
 
-    console.log(`Tracks únicos: ${uniqueTracks.length}`);
-    console.log(`Con preview de Spotify: ${uniqueTracks.filter(t => t.previewUrl).length}`);
-    
-    console.log('Buscando previews en Deezer...');
+    console.log(`[${artistName}] Tracks únicos: ${uniqueTracks.length}`);
+    console.log(`[${artistName}] Con preview de Spotify: ${uniqueTracks.filter(t => t.previewUrl).length}`);
     
     const tracksWithPreviews = await Promise.all(
       uniqueTracks.map(async (track) => {
         if (!track.previewUrl) {
-          const deezerPreview = await searchDeezerPreview(track.name, 'BTS');
+          const deezerPreview = await searchDeezerPreview(track.name, artistName);
           if (deezerPreview) {
-            console.log(`Deezer preview encontrado para: ${track.name}`);
+            console.log(`[${artistName}] Deezer preview: ${track.name}`);
           }
           return {
             ...track,
@@ -214,7 +212,7 @@ export const GET: APIRoute = async ({ params }) => {
     );
 
     const previewCount = tracksWithPreviews.filter(t => t.previewUrl).length;
-    console.log(`Total con preview: ${previewCount}/${tracksWithPreviews.length}`);
+    console.log(`[${artistName}] Total con preview: ${previewCount}/${tracksWithPreviews.length}`);
 
     const result = {
       artist: artistId,
@@ -231,12 +229,11 @@ export const GET: APIRoute = async ({ params }) => {
       }
     };
 
-    // Guardar en cache
     try {
       if (!redis) {
         redis = await getRedisClient();
       }
-      await redis.setEx(cacheKey, 86400, JSON.stringify(result)); // 24 horas
+      await redis.setEx(cacheKey, 86400, JSON.stringify(result));
       await redis.quit();
     } catch (redisError) {
       console.warn('Redis set error:', redisError);
@@ -250,7 +247,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   } catch (error) {
     if (redis) await redis.quit().catch(() => {});
-    console.error('Error fetching data:', error);
+    console.error(`[${artistName}] Error:`, error);
     return new Response(JSON.stringify({ 
       error: 'Error al obtener datos',
       details: error instanceof Error ? error.message : 'Unknown error'
