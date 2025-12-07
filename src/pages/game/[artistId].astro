@@ -12,23 +12,46 @@ const artistName = artistNames[artistId || ''] || 'Artista';
 ---
 
 <Layout title={`${artistName} - Music Versus`}>
-  <main class="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
+  <main class="min-h-screen relative" style="background-color: #F5E9E4;">
+    <!-- Decoraciones florales -->
+    <div class="absolute top-8 left-8 text-5xl opacity-15 select-none pointer-events-none">
+      🌿
+    </div>
+    <div class="absolute top-8 right-8 text-5xl opacity-15 select-none pointer-events-none">
+      🌸
+    </div>
+    
     <div class="container mx-auto px-4 py-8">
       <!-- Header con botón de volver -->
       <div class="mb-8">
         <a 
           href="/"
-          class="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors"
+          class="inline-flex items-center px-4 py-2 rounded-full transition-all duration-300 font-medium border-2"
+          style="color: #926149; border-color: transparent;"
         >
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
-          Volver
+          Volver al inicio
         </a>
       </div>
 
-      <!-- React Island - Aquí es donde React toma control -->
       <GameVersus client:load artistId={artistId || ''} artistName={artistName} />
+    </div>
+    
+    <!-- Decoraciones inferiores -->
+    <div class="absolute bottom-8 left-8 text-5xl opacity-15 select-none pointer-events-none">
+      🍄
+    </div>
+    <div class="absolute bottom-8 right-8 text-5xl opacity-15 select-none pointer-events-none">
+      🌾
     </div>
   </main>
 </Layout>
+
+<style>
+  a:hover {
+    border-color: #926149 !important;
+    background-color: #ffffff !important;
+  }
+</style>

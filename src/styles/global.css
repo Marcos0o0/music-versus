@@ -1,17 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #8b5cf6;
-  --color-secondary: #ec4899;
+  /* Paleta Cottage Core */
+  --color-cream: #F5E9E4;      /* Crema (fondo principal) */
+  --color-beige: #A89885;      /* Beige/gris cálido */
+  --color-green: #44442B;      /* Verde militar oscuro */
+  --color-brown: #926149;      /* Café/terracota */
+  
+  /* Variaciones sutiles */
+  --color-green-soft: #6b6b45;
+  --color-brown-soft: #b07d66;
+  --color-beige-dark: #8a7a68;
   
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-/* Estilos personalizados si los necesitas */
 body {
-  @apply bg-gray-950 text-white;
+  background-color: #F5E9E4;
+  color: #44442B;
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Patrón sutil de textura (opcional, estilo cottage) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(168, 152, 133, 0.02) 10px,
+      rgba(168, 152, 133, 0.02) 20px
+    );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Sombras suaves */
+.shadow-soft {
+  box-shadow: 0 4px 16px rgba(68, 68, 43, 0.08);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 10px 30px rgba(68, 68, 43, 0.12);
 }

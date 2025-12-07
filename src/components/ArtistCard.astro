@@ -12,31 +12,55 @@ const { id, name, image, description } = Astro.props;
 
 <a 
   href={`/game/${id}`}
-  class="group block bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20"
+  class="group block rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-102 relative"
+  style="background-color: #ffffff; border-color: #A89885; box-shadow: 0 4px 20px rgba(68, 68, 43, 0.08);"
 >
-  <div class="aspect-square overflow-hidden bg-gray-900">
+  <!-- Esquina decorativa -->
+  <div class="absolute top-3 right-3 text-2xl opacity-60 group-hover:opacity-100 transition-opacity z-10">
+    🌸
+  </div>
+  
+  <div class="aspect-square overflow-hidden relative" style="background-color: #F5E9E4;">
     <img 
       src={image} 
       alt={name}
       loading="lazy"
-      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-      onerror="this.src='https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS'"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
     />
+    <!-- Overlay sutil -->
+    <div class="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
   </div>
   
-  <div class="p-6">
-    <h3 class="text-2xl font-bold mb-2 group-hover:text-purple-400 transition-colors">
+  <div class="p-6 relative">
+    <!-- Detalle floral -->
+    <div class="absolute top-0 left-6 w-12 h-px" style="background-color: #926149; transform: translateY(-0.5px);"></div>
+    
+    <h3 class="text-3xl font-bold mb-3 transition-colors" style="color: #44442B; font-family: Georgia, serif;">
       {name}
     </h3>
-    <p class="text-gray-400 text-sm line-clamp-2">
+    <p class="text-sm line-clamp-2 mb-5 leading-relaxed" style="color: #A89885;">
       {description}
     </p>
     
-    <div class="mt-4 flex items-center text-purple-400 font-medium">
-      <span>Jugar ahora</span>
-      <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-      </svg>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center font-semibold transition-colors" style="color: #926149;">
+        <span>Comenzar</span>
+        <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+      </div>
+      <span class="text-xl">🎵</span>
     </div>
   </div>
 </a>
+
+<style>
+  a:hover {
+    border-color: #926149 !important;
+    box-shadow: 0 10px 40px rgba(146, 97, 73, 0.15) !important;
+  }
+  
+  a:hover h3 {
+    color: #926149 !important;
+  }
+</style>

@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import ArtistCard from '../components/ArtistCard.astro';
 
-// Obtener la imagen del artista desde Spotify
 const getArtistImage = async (spotifyId: string) => {
   try {
     const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
@@ -26,10 +25,10 @@ const getArtistImage = async (spotifyId: string) => {
     });
     
     const artistData = await artistResponse.json();
-    return artistData.images[0]?.url || 'https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS';
+    return artistData.images[0]?.url || '';
   } catch (error) {
     console.error('Error fetching artist image:', error);
-    return 'https://via.placeholder.com/400x400/1f2937/9333ea?text=BTS';
+    return '';
   }
 };
 
@@ -47,30 +46,72 @@ const artists = [
 ---
 
 <Layout title="Music Versus - Elige tu canción favorita">
-  <main class="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
-    <header class="container mx-auto px-4 py-8">
-      <div class="text-center">
-        <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+  <main class="min-h-screen" style="background-color: #F5E9E4;">
+    <!-- Decoración cottage: flores en las esquinas -->
+    <div class="absolute top-8 left-8 text-6xl opacity-20 select-none pointer-events-none">
+      🌿
+    </div>
+    <div class="absolute top-8 right-8 text-6xl opacity-20 select-none pointer-events-none">
+      🌸
+    </div>
+    
+    <header class="container mx-auto px-4 py-20 relative">
+      <div class="text-center max-w-3xl mx-auto">
+        <!-- Título con estilo vintage -->
+        <div class="mb-6">
+          <div class="inline-block px-6 py-2 rounded-full border-2 mb-4" style="border-color: #926149; color: #926149;">
+            <span class="text-sm font-semibold tracking-wide">✨ ENCUENTRA TU FAVORITA ✨</span>
+          </div>
+        </div>
+        
+        <h1 class="text-7xl font-black mb-6 leading-tight" style="color: #44442B; font-family: Georgia, serif;">
           Music Versus
         </h1>
-        <p class="text-xl text-gray-300">
-          Descubre tu canción favorita a través de batallas épicas
+        
+        <p class="text-xl mb-4 leading-relaxed" style="color: #926149;">
+          Descubre tu canción favorita a través de dulces batallas musicales
+        </p>
+        
+        <p class="text-sm" style="color: #A89885;">
+          🎵 Elige con el corazón • 🌼 Cada canción es especial • 🎀 Encuentra tu melodía
         </p>
       </div>
     </header>
 
-    <section class="container mx-auto px-4 py-12">
-      <h2 class="text-3xl font-bold mb-8 text-center">Elige un Artista</h2>
+    <section class="container mx-auto px-4 py-12 relative">
+      <!-- Decoración: línea divisoria -->
+      <div class="flex items-center justify-center mb-12">
+        <div class="h-px w-24" style="background-color: #A89885;"></div>
+        <span class="mx-4 text-2xl">🌻</span>
+        <div class="h-px w-24" style="background-color: #A89885;"></div>
+      </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <h2 class="text-4xl font-bold mb-12 text-center" style="color: #44442B; font-family: Georgia, serif;">
+        Elige un Artista
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {artists.map((artist) => (
           <ArtistCard {...artist} />
         ))}
       </div>
     </section>
 
-    <footer class="container mx-auto px-4 py-8 text-center text-gray-400">
-      <p>Powered by Spotify API</p>
+    <!-- Footer suave -->
+    <footer class="container mx-auto px-4 py-12 text-center relative">
+      <div class="flex items-center justify-center gap-2 mb-4" style="color: #A89885;">
+        <span class="text-xl">🎶</span>
+        <p class="text-sm">Hecho con amor • Spotify & Deezer</p>
+        <span class="text-xl">🎶</span>
+      </div>
     </footer>
+    
+    <!-- Decoración inferior -->
+    <div class="absolute bottom-8 left-8 text-6xl opacity-20 select-none pointer-events-none">
+      🍄
+    </div>
+    <div class="absolute bottom-8 right-8 text-6xl opacity-20 select-none pointer-events-none">
+      🌾
+    </div>
   </main>
 </Layout>
